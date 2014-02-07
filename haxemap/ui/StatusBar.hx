@@ -28,47 +28,67 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package com;
+package haxemap.ui;
+import flash.text.TextField;
+import flash.text.TextFormat;
+import flash.utils.Timer;
+import flash.events.TimerEvent;
+import haxemap.ui.Component;
 
-import flash.display.Sprite;
-import flash.geom.Rectangle;
-
-typedef ComponentSize = {
-   var width  : Float;
-   var height : Float;
-};
-
-
-class Component extends Sprite 
+class StatusBar extends Component 
 {
-    var _size  : ComponentSize;
+    var text:TextField;
+    var timer:Timer;
 
     public function new()
     {
+    	var format = new TextFormat();
+        format.font = "Arial";        
+        format.size = 12;
+
+        text = new TextField();
+	text.defaultTextFormat = format;
+        text.selectable = false;
+        text.border = false;
+        text.background = false; 
+        text.textColor = 0x444444;
+        text.autoSize = flash.text.TextFieldAutoSize.LEFT;
+        text.text = '';
+        text.x = 2;
+        text.x = 2;
+        this.addChild(text);
+
+        timer = new Timer(2000, 1);
+	timer.addEventListener(TimerEvent.TIMER, timeOut);
+
         super();
-
-        this._size = {width: 100.0, height:100.0};
     }
-    
-    public function move(x:Float, y:Float) 
+ 
+    public function clear()
     {
-       this.x = x;
-       this.y = y;
+        text.text = '';
+    }
+      
+    public function setText(s:String)
+    {
+        text.text = s;
+
+        if (timer.running)
+           timer.stop();
+        timer.start();
+    }  
+
+    function timeOut(e:flash.events.Event)
+    {
+        clear();
     }
 
-    public function setSize(w:Float, h:Float) 
+    override function onResize(w:Float, h:Float)
     {
-       this._size.width = w;
-       this._size.height = h;
-       this.onResize(w, h);
+        graphics.clear();
+        graphics.beginFill(0xE0E0E0);
+        graphics.drawRect(0,0,w, h);
+        graphics.endFill();
     }
 
-    public function getSize() : ComponentSize
-    {
-       return this._size;
-    }
-
-    function onResize(w:Float, h:Float)
-    {
-    }
 }

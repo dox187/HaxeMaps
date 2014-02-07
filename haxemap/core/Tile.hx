@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
 import flash.display.Sprite;
 import flash.display.Bitmap;
@@ -103,19 +103,21 @@ class Tile extends Sprite
         {
            removeChild(this.image);
            this.image = null;
-        }
-
-        if (image != null)
-        {
-           this.image = image;
-           addChildAt(this.image, 0);
+		}   
+		
+		if (image != null)
+		{
+		   this.image = image;
+           this.image.smoothing = true;
+		   
+		   addChildAt(this.image, 0);
         }
         else 
         {
            graphics.lineStyle(2, 0xF0F0F0);
            graphics.drawCircle(size/2,size/2, 10);
         }
-
+		
         this.valid = (this.image != null); 
     }
 

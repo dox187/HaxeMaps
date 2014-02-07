@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
 typedef QuadData = {
   public var x:Float;

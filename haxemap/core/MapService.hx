@@ -28,9 +28,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
-import map.Utils;
+import haxemap.core.Utils;
 import flash.geom.Point;
 
 interface MapService 
@@ -80,17 +80,23 @@ class BaseMapService {
        this.invert_y = false;
        this.proxy = false;
 
-       //check if the proxy parameter is set
-       var params = flash.Lib.current.loaderInfo.parameters;
-       if ((params != null)  && (params.proxy != null) && (params.proxy != ""))
-       {
-           this.proxy_url = params.proxy;
-           if (this.proxy_url.charAt(proxy_url.length-1) != '/')
-              this.proxy_url += '/';
-           this.proxy_url += abbrev + "/";
-           this.id += " (Proxy)";
-           this.proxy = true;
-       }
+       /*tony*/			
+	   #if !cpp
+	   if (flash.Lib.current.loaderInfo != null)
+	   {
+		 //check if the proxy parameter is set
+	     var params = flash.Lib.current.loaderInfo.parameters;
+		   if ((params != null)  && (params.proxy != null) && (params.proxy != ""))
+		   {
+			   this.proxy_url = params.proxy;
+			   if (this.proxy_url.charAt(proxy_url.length-1) != '/')
+				  this.proxy_url += '/';
+			   this.proxy_url += abbrev + "/";
+			   this.id += " (Proxy)";
+			   this.proxy = true;
+		   }
+	   }
+	   #end
     }
 
     public function validZoom(z:Int) : Bool
@@ -146,9 +152,16 @@ class OpenStreetMapService extends BaseMapService, implements MapService
     {
        if (!isValid(t)) return "";
  
-       if (!proxy)
-          return "http://tile.openstreetmap.org/" + (t.z) + "/" + (t.x) + "/" + (t.y) + ".png";
+	   //trace("http://tile.openstreetmap.org/" + (t.z) + "/" + (t.x) + "/" + (t.y) + ".png");
+	   
+       //if (!proxy)
+        //  return "http://tile.openstreetmap.org/" + (t.z) + "/" + (t.x) + "/" + (t.y) + ".png";
 
+		var num = Math.ceil(Math.random() * 4); 
+		
+	   if (!proxy)
+			return "http://otile" + num + ".mqcdn.com/tiles/1.0.0/osm/" + (t.z) + "/" + (t.x) + "/" + (t.y) + ".png";
+		  
        return this.proxy_url + (t.z) + "_" + (t.x) + "_" + (t.y);
     }
 
@@ -202,10 +215,39 @@ class BingMapService extends OpenStreetMapService
               xx = xx >> 1;
               yy = yy >> 1;
           }
+		  
           return "http://tiles.virtualearth.net/tiles/"+(hybrid ? "h" : "r")+tid+".png?g=414&mkt=en-us&shading=hill&n=z";
        }
 
        return this.proxy_url + (t.z) + "_" + (t.x) + "_" + (t.y);
     }
 
+}
+
+class GoogleMapService extends OpenStreetMapService
+{
+	
+    // Details:
+    // ---------------------------------------------------------
+    //   http://msdn.microsoft.com/en-us/library/bb545006.aspx
+
+    var hybrid:Bool;
+
+    override public function new(default_zoom:Int = 13, hybrid:Bool = false)
+    {
+       super();
+       this.hybrid = hybrid;
+       setInfo("Bink Maps", "bnk", 1, 18, default_zoom, 256);
+		
+    }
+
+    override public function tile2url(t:TileID) : String
+    {
+		if (!isValid(t)) return "";
+		
+		if (!proxy)
+			return "http://khm1.google.com/kh/v=109&src=app&x=" + t.x + "&y=" + t.y + "&z=" + t.z + "&s=Galileo.jpg";
+		
+		return this.proxy_url + (t.z) + "_" + (t.x) + "_" + (t.y);
+    }
 }

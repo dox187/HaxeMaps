@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
 import flash.display.Sprite;
 import flash.events.Event;
@@ -36,8 +36,8 @@ import flash.geom.Point;
 import flash.geom.Rectangle;
 import flash.utils.Timer;
 import flash.events.TimerEvent;
-import map.Utils;
-import map.LngLat;
+import haxemap.core.Utils;
+import haxemap.core.LngLat;
 
 class Layer extends Sprite
 {
@@ -125,18 +125,19 @@ class Layer extends Sprite
 
     public function setBBox(bbox:Rectangle)
     {
-        if (bbox == null) 
-           return;
-       
-        var actcenter:LngLat = null;
-        if ((this.bbox != null) && (this.initialized))
-           actcenter = this.getCenter();
-
-        this.bbox = bbox;
-        this.canvascenter = new Point(this.bbox.x + this.bbox.width/2.0, this.bbox.y + this.bbox.height/2.0);
-
-        if (actcenter != null) 
-           this.setCenter(actcenter);
+        if (bbox != null) 
+        {
+           var force:Bool = false;
+           if ((this.bbox != null) && (this.center != null) && (this.initialized))
+           {
+	      var ptc = getCenter();
+              if ((ptc.lng != this.center.lng) || (ptc.lat != this.center.lat)) force = true;
+              this.center = ptc;
+           }
+           this.bbox = bbox;
+           this.canvascenter = new Point(this.bbox.x + this.bbox.width/2.0, this.bbox.y + this.bbox.height/2.0);
+           centerUpdated(force);
+        }
     }
 
 

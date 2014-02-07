@@ -28,10 +28,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
 import flash.geom.Point;
+
+#if !cpp
 import flash.filters.ColorMatrixFilter;
+#end
 
 class Utils
 {
@@ -48,9 +51,10 @@ class Utils
         return s;
     }
 
-    public static function desaturationFilter(sat:Float = 1.0) : ColorMatrixFilter
+    public static function desaturationFilter(sat:Float = 1.0)
     {
-       var r = 0.212671;
+       #if !cpp
+		var r = 0.212671;
        var g = 0.715160;
        var b = 0.072169;
        return new ColorMatrixFilter( 
@@ -60,6 +64,9 @@ class Utils
                 /* A */ 0, 0, 0, 1, 0
                ]
               );
+		#else 
+		return null;
+		#end
     }
 
 }

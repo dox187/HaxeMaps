@@ -28,9 +28,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
-import map.Utils;
+import haxemap.core.Utils;
 
 import flash.events.Event;
 import flash.events.EventDispatcher;
@@ -39,8 +39,9 @@ import flash.display.Loader;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.net.URLRequest;
+#if flash
 import flash.system.LoaderContext;
-
+#end
 import flash.utils.Timer;
 import flash.events.TimerEvent;
 
@@ -103,7 +104,8 @@ class ImageLoader extends Loader
    public function loadImage(tid:TileIDT, url:String) {
       var urlRequest:URLRequest = new URLRequest(url);
       this.tid = tid;
-      try {
+      
+	  try {
 
         #if TILE_EVT_DBG
         try {
@@ -111,8 +113,13 @@ class ImageLoader extends Loader
         } catch (unknown : Dynamic)  { };
         #end
 
-        this.load(urlRequest,  new LoaderContext(true));
-        this.used = true;
+		#if flash
+		this.load(urlRequest,  new LoaderContext(true));
+        #else 
+		this.load(urlRequest);
+		#end
+		
+		this.used = true;
         this.ttl = TIMEOUT;
 
       } 
@@ -120,6 +127,10 @@ class ImageLoader extends Loader
       {
         this.used = false;
       }
+	  
+	 /* this.load(urlRequest);
+	  this.used = true;
+	  this.ttl = TIMEOUT;*/
    }
  
    override public function toString() 
@@ -148,7 +159,13 @@ class TileLoader extends EventDispatcher
     var enabled:Int;
     var watchdog:Timer;
 
-    public function new(threads:Int = 8)
+    public function new(
+		#if flash 
+			threads:Int = 18
+		#else 
+			threads:Int = 5
+		#end
+	)
     {
        super();
 
@@ -180,17 +197,28 @@ class TileLoader extends EventDispatcher
     public function clear()
     {
        clearQueue();
+	   
+	   //trace(":: clear");
 
-       for (l in loaders)
+	   for (l in loaders)
            if (l.used) 
            {
               l.ignore = true;
               try {
-                 //l.close(); //BUGGY!
-                 //l.unload();
+				 //l.close(); //BUGGY!
+				 
+				 if (l.parent != null)
+					l.parent.removeChild(l);
+				 
+				 l.unload();
+				 
+				 //loaders.remove(l);
+				
               } 
               catch (unknown : Dynamic)  
-              { };
+              { 
+				trace(unknown);  
+			  };
            }
  
     }
@@ -233,7 +261,15 @@ class TileLoader extends EventDispatcher
                 i += 1;
           } 
           else
-             queue.remove(tid);
+		  {
+			 trace("kill " + tid.tidx);
+			 
+			 #if flash
+             loaders[tid.ttl].close();
+			 #end
+			 loaders[tid.ttl].used = false;
+			 queue.remove(tid);
+		  }
        }
     }
 
@@ -314,6 +350,7 @@ class TileLoader extends EventDispatcher
 
     function checkLoaders(e:TimerEvent)
     {
+		 //trace(":: checkLoaders");
         //watchdog timer event 
 
         //check for broken loaders
@@ -334,7 +371,7 @@ class TileLoader extends EventDispatcher
         while (i < tempqueue.length)
         {
             q = tempqueue[i];
-
+			
             if (q.ttl > 0)
                q.ttl--;
             else if (q.ttl == 0) 
@@ -403,7 +440,7 @@ class TileLoader extends EventDispatcher
  
         var loader:ImageLoader = e.target.loader;
 
-	if (!loader.ignore) 
+		if (!loader.ignore) 
         {
            try {
                var x:Int = loader.tid.x;
@@ -419,8 +456,8 @@ class TileLoader extends EventDispatcher
                #end
 
                var bitmapc:Bitmap = new Bitmap(cast(loader.content, Bitmap).bitmapData.clone());
-               dispatchEvent(new TileLoadedEvent(x,y,z,t,p, bitmapc));
-
+               
+			   dispatchEvent(new TileLoadedEvent(x, y, z, t, p, bitmapc));
            } 
            catch (unknown : Dynamic)  
            { 
@@ -463,6 +500,8 @@ class TileLoader extends EventDispatcher
         l.used = false;
         l.ignore = false;
 
+		//trace("failed " + l.tid);
+		
         #if TILE_EVT_DBG
         try {
             ExternalInterface.call("debugMessage", "tileError " + l.tid.x + ","+l.tid.y+","+l.tid.z);

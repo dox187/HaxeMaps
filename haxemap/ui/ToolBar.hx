@@ -28,10 +28,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package com;
+package haxemap.ui;
 
-import com.Component;
-import com.Button;
+import haxemap.ui.Component;
+import haxemap.ui.Button;
 import flash.text.TextField;
 
 class ToolBar extends Component 
@@ -112,8 +112,10 @@ class ToolBar extends Component
         tf.backgroundColor = 0xFFFFFF;
         tf.multiline = false;
         tf.type = flash.text.TextFieldType.INPUT;
-        tf.mouseWheelEnabled = false;
-
+        #if flash
+		tf.mouseWheelEnabled = false;
+		#end
+		
         var fmt = new flash.text.TextFormat();
         fmt.font="Arial";
         fmt.size=12;

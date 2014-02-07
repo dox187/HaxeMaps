@@ -28,12 +28,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
-import map.Tile;
-import map.TileLoader;
-import map.Layer;
-import map.Utils;
+import haxemap.core.Tile;
+import haxemap.core.TileLoader;
+import haxemap.core.Layer;
+import haxemap.core.Utils;
 import flash.events.Event;
 import flash.geom.Point;
 import flash.display.Bitmap;
@@ -59,7 +59,7 @@ class TileLayer extends Layer
     var ofsy:Float;
     var smooth:Bool;
 
-    public function new(map_service:MapService = null, tiles:Int = 8, smooth_zoom:Bool = true)
+    public function new(map_service:MapService = null, tiles:Int = 8, smooth_zoom:Bool = false)
     {
         super(map_service);
 
@@ -230,53 +230,54 @@ class TileLayer extends Layer
 
         if (this.zoom > newZoom)
         {
+		   var bx:Int = (basetid.x & 1) ^ 1;
+		   var by:Int = (basetid.y & 1) ^ 1;
 
-           if (smooth) {
-               //smooth zoom - combines four tiles into one
- 
-               var bx:Int = (basetid.x & 1) ^ 1;
-               var by:Int = (basetid.y & 1) ^ 1;
+		   for (t in tiles)
+		   {
+			   if ((t.tx & 1 == bx) || (t.ty & 1 == by)) continue;
 
-               for (t in tiles)
-               {
-                   if ((t.tx & 1 == bx) || (t.ty & 1 == by)) continue;
- 
-                   var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
-                   var scaleMatrix = new flash.geom.Matrix(); 
-                   scaleMatrix.scale(0.5, 0.5);
-                   if (t.image != null)
-                      bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilehsize,tilehsize), false);
+			   //smooth zoom - combines four tiles into one
 
-                   var scaleMatrix = new flash.geom.Matrix(); 
-                   scaleMatrix.scale(0.5, 0.5);
-                   scaleMatrix.translate(tilehsize,0);
-                   var tt = tiles[t.rtidx];
-                   if ((tt.tx != this.lx) && (tt.image != null))
-                      bd.draw(tt.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(tilehsize,0,tilehsize,tilehsize), false);
+			   if (smooth) {
+				   var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
+				   var scaleMatrix = new flash.geom.Matrix(); 
+				   scaleMatrix.scale(0.5, 0.5);
+				   if (t.image != null)
+					  bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilehsize,tilehsize), false);
+
+				   var scaleMatrix = new flash.geom.Matrix(); 
+				   scaleMatrix.scale(0.5, 0.5);
+				   scaleMatrix.translate(tilehsize,0);
+				   var tt = tiles[t.rtidx];
+				   if ((tt.tx != this.lx) && (tt.image != null))
+					  bd.draw(tt.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(tilehsize,0,tilehsize,tilehsize), false);
 
 
-                   var scaleMatrix = new flash.geom.Matrix(); 
-                   scaleMatrix.scale(0.5, 0.5);
-                   scaleMatrix.translate(0,tilehsize);
-                   var tt = tiles[t.btidx];
-                   if ((tt.ty != this.ty) && (tt.image != null))
-                      bd.draw(tt.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,tilehsize,tilehsize,tilehsize), false);
+				   var scaleMatrix = new flash.geom.Matrix(); 
+				   scaleMatrix.scale(0.5, 0.5);
+				   scaleMatrix.translate(0,tilehsize);
+				   var tt = tiles[t.btidx];
+				   if ((tt.ty != this.ty) && (tt.image != null))
+					  bd.draw(tt.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,tilehsize,tilehsize,tilehsize), false);
 
-                   var scaleMatrix = new flash.geom.Matrix(); 
-                   scaleMatrix.scale(0.5, 0.5);
-                   scaleMatrix.translate(tilehsize,tilehsize);
-                   var tt = tiles[tiles[t.btidx].rtidx];
-                   if ((tt.tx != this.lx) && (tt.ty != this.ty) && (tt.image != null))
-                      bd.draw(tt.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(tilehsize,tilehsize,tilehsize,tilehsize), false);
-
-                   loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x) >> 1,
-                                    (((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y) >> 1, 
-                                    newZoom + basetid.z,
-                                    bd, false
-                                   );
-
-                }
-           }
+				   var scaleMatrix = new flash.geom.Matrix(); 
+				   scaleMatrix.scale(0.5, 0.5);
+				   scaleMatrix.translate(tilehsize,tilehsize);
+				   var tt = tiles[tiles[t.btidx].rtidx];
+				   if ((tt.tx != this.lx) && (tt.ty != this.ty) && (tt.image != null))
+					  bd.draw(tt.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(tilehsize,tilehsize,tilehsize,tilehsize), false);
+				
+					  
+				   loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x) >> 1,
+									(((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y) >> 1, 
+									newZoom + basetid.z,
+									bd, false
+								   );
+							   	  
+				}
+			}
+           
 
            //zoom out
            if (basetid.x & 1 == 1) x -= tilesize/2;
@@ -296,61 +297,65 @@ class TileLayer extends Layer
         }
         else 
         {
-
-           if (smooth) 
-           {
-              //smooth zoom - each tile is splited into the four tiles
+			
               var mintx:Int = Std.int((3*this.lx + this.rx + 1) / 4);
               var maxtx:Int = Std.int((3*this.rx + this.lx + 3) / 4);
               var minty:Int = Std.int((3*this.ty + this.by + 1) / 4);
               var maxty:Int = Std.int((3*this.by + this.ty + 3) / 4);
               for (t in tiles)
-                  if ((t.image != null) && (t.tx >= mintx) && (t.tx <= maxtx) && (t.ty >= minty) && (t.ty <= maxty))
+              {
+				  if ((t.image != null) && (t.tx >= mintx) && (t.tx <= maxtx) && (t.ty >= minty) && (t.ty <= maxty))
                   {
-                     var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
-                     var scaleMatrix = new flash.geom.Matrix(); 
-                     scaleMatrix.scale(2, 2);
-                     bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
-                     loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2,
-                                    (((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2, 
-                                    newZoom + basetid.z, bd, false
-                                   );
+					  //smooth zoom - each tile is splited into the four tiles
+						if (smooth) 
+						{
+							var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
+							 var scaleMatrix = new flash.geom.Matrix(); 
+							 scaleMatrix.scale(2, 2);
+							 bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
+							 loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2,
+											(((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2, 
+											newZoom + basetid.z, bd, false
+										   );
+			  
+						  
 
 
-                     var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
-                     var scaleMatrix = new flash.geom.Matrix(); 
-                     scaleMatrix.scale(2, 2);
-                     scaleMatrix.translate(-tilesize,0);
-                     bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
-                     loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2 + 1,
-                                    (((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2, 
-                                    newZoom + basetid.z, bd, false
-                                   );
+							 var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
+							 var scaleMatrix = new flash.geom.Matrix(); 
+							 scaleMatrix.scale(2, 2);
+							 scaleMatrix.translate(-tilesize,0);
+							 bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
+							 loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2 + 1,
+											(((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2, 
+											newZoom + basetid.z, bd, false
+										   );
 
 
-                     var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
-                     var scaleMatrix = new flash.geom.Matrix(); 
-                     scaleMatrix.scale(2, 2);
-                     scaleMatrix.translate(0,-tilesize);
-                     bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
-                     loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2,
-                                    (((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2 + 1, 
-                                    newZoom + basetid.z, bd, false
-                                  );
+							 var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0xFFFFFF);
+							 var scaleMatrix = new flash.geom.Matrix(); 
+							 scaleMatrix.scale(2, 2);
+							 scaleMatrix.translate(0,-tilesize);
+							 bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
+							 loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2,
+											(((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2 + 1, 
+											newZoom + basetid.z, bd, false
+										  );
 
 
-                     var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0x00FF00);
-                     var scaleMatrix = new flash.geom.Matrix(); 
-                     scaleMatrix.scale(2, 2);
-                     scaleMatrix.translate(-tilesize,-tilesize);
-                     bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
-                     loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2 + 1,
-                                    (((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2 + 1, 
-                                    newZoom + basetid.z, bd, false
-                                  );
-
-              }
-           }
+							 var bd = new flash.display.BitmapData(tilesize, tilesize, false, 0x00FF00);
+							 var scaleMatrix = new flash.geom.Matrix(); 
+							 scaleMatrix.scale(2, 2);
+							 scaleMatrix.translate(-tilesize,-tilesize);
+							 bd.draw(t.image.bitmapData, scaleMatrix, null, null, new flash.geom.Rectangle(0,0,tilesize,tilesize), false);
+							 loader.addTile((((mapservice.invert_x) ? -t.tx : t.tx) + basetid.x)*2 + 1,
+											(((mapservice.invert_y) ? -t.ty : t.ty) + basetid.y)*2 + 1, 
+											newZoom + basetid.z, bd, false
+										  );
+					
+						}
+					}
+			}
 
            //zoom in
            basetid.x = basetid.x << 1;
@@ -473,7 +478,7 @@ class TileLayer extends Layer
 
         try
         {
-	    loader.tidyQueue(((mapservice.invert_x) ? -lx : lx) + basetid.x, ((mapservice.invert_x) ? -rx : rx) + basetid.x, 
+			loader.tidyQueue(((mapservice.invert_x) ? -lx : lx) + basetid.x, ((mapservice.invert_x) ? -rx : rx) + basetid.x, 
                              ((mapservice.invert_y) ? -ty : ty) + basetid.y, ((mapservice.invert_y) ? -by : by) + basetid.y, 
                              zoom + basetid.z
                             );
@@ -499,7 +504,10 @@ class TileLayer extends Layer
                 }
             }
 
-        } catch (unknown : Dynamic) {};
+        } catch (unknown : Dynamic) {
+			
+			trace(unknown);
+		};
 
         loader.enable();
     }

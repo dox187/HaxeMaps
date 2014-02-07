@@ -28,66 +28,58 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package com;
-import flash.text.TextField;
-import flash.text.TextFormat;
-import flash.utils.Timer;
-import flash.events.TimerEvent;
-import com.Component;
+package haxemap.ui;
 
-class StatusBar extends Component 
+import haxemap.ui.Component;
+import flash.text.TextField;
+
+class InfoBox extends Component 
 {
-    var text:TextField;
-    var timer:Timer;
+    var ofsy : Float;
+    var maxw : Float;
 
     public function new()
     {
-    	var format = new TextFormat();
-        format.font = "Arial";        
-        format.size = 12;
-
-        text = new TextField();
-	text.defaultTextFormat = format;
-        text.selectable = false;
-        text.border = false;
-        text.background = false; 
-        text.textColor = 0x444444;
-        text.autoSize = flash.text.TextFieldAutoSize.LEFT;
-        text.text = '';
-        text.x = 2;
-        text.x = 2;
-        this.addChild(text);
-
-        timer = new Timer(2000, 1);
-	timer.addEventListener(TimerEvent.TIMER, timeOut);
-
-        super();
-    }
- 
-    public function clear()
-    {
-        text.text = '';
-    }
-      
-    public function setText(s:String)
-    {
-        text.text = s;
-
-        if (timer.running)
-           timer.stop();
-        timer.start();
-    }  
-
-    function timeOut(e:flash.events.Event)
-    {
-        clear();
+        super(); 
+        this.ofsy = 0;
+        this.maxw = 0;
     }
 
-    override function onResize(w:Float, h:Float)
+    public function addItem(text:String) : TextField
+    {
+        var sz = getSize();
+
+        var fmt = new flash.text.TextFormat();
+        fmt.font="Arial";
+        fmt.size=12;
+        fmt.color = 0xFFFFFF;
+
+        var tf = new TextField();
+        tf.defaultTextFormat = fmt;
+        tf.x = 2;
+        tf.y = this.ofsy;
+        tf.autoSize = flash.text.TextFieldAutoSize.LEFT;
+        tf.multiline = false;
+        tf.text = text;
+        tf.border = false;
+        tf.background = false;
+  
+        addChild(tf);
+
+        if (tf.width > this.maxw) this.maxw = tf.width;
+
+        this.ofsy += tf.height + 1;          
+
+        update();
+
+        return tf;
+    }
+
+    function update()
     {
         graphics.clear();
-        graphics.beginFill(0xE0E0E0);
-        graphics.drawRect(0,0,w, h);
+        graphics.beginFill(0x000000, 0.5);
+        graphics.drawRect(0,0, this.maxw + 4, this.ofsy);
         graphics.endFill();
     }
 

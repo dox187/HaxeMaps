@@ -28,12 +28,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.core;
 
-import com.Component;
+import haxemap.ui.Component;
 
-import map.MapService;
-import map.LngLat;
+import haxemap.core.MapService;
+import haxemap.core.LngLat;
 import flash.events.Event;
 import flash.events.MouseEvent;
 import flash.geom.Point;
@@ -96,6 +96,7 @@ class Canvas extends Component
         this.doubleClickEnabled = true;
         this.transparent = false;
 
+		/*#if flash
         contextMenu = new flash.ui.ContextMenu();
         contextMenu.hideBuiltInItems();
         var itm = new flash.ui.ContextMenuItem("HaxeMaps");
@@ -124,8 +125,15 @@ class Canvas extends Component
            contextMenu.customItems.push(itm);
 
         }
+		#else */
+		if (interactive) 
+        {
+           addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+           addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+           addEventListener(MouseEvent.DOUBLE_CLICK, onMouseDoubleClick);
+        }
+		//#end
     }
- 
     /*============================================================================================== 
       LAYER MANAGEMENT
      *==============================================================================================*/
@@ -133,9 +141,9 @@ class Canvas extends Component
     {
         if (initialized)
            return;
-
+		
         var m:MapService = null;
-
+		
         //find the first defined service
         for (l in layers)
             if (l.layer.mapservice != null)
@@ -305,7 +313,9 @@ class Canvas extends Component
         alayer.layer.initialize();
 
         if ((!alayer.enabled) && (canAdd))
-           addChild(alayer.layer);
+        {
+			addChild(alayer.layer);
+		}
     }
 
     /*============================================================================================== 

@@ -1,6 +1,6 @@
 /*******************************************************************************
 Copyright (c) 2010, Zdenek Vasicek (vasicek AT fit.vutbr.cz)
-                    Marek Vavrusa  (marek AT vavrusa.com)
+
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,58 +28,47 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package map;
+package haxemap.ui;
 
-class LngLat
+import flash.display.Sprite;
+import flash.geom.Rectangle;
+
+typedef ComponentSize = {
+   var width  : Float;
+   var height : Float;
+};
+
+
+class Component extends Sprite 
 {
-    public var lat: Float;
-    public var lng: Float;
+    var _size  : ComponentSize;
 
-    public function new(lng:Float, lat:Float)
+    public function new()
     {
-       this.lng = lng; 
-       this.lat = lat;
+        super();
+
+        this._size = {width: 100.0, height:100.0};
+    }
+    
+    public function move(x:Float, y:Float) 
+    {
+       this.x = x;
+       this.y = y;
     }
 
-    inline public function clone()
+    public function setSize(w:Float, h:Float) 
     {
-       return new LngLat(this.lng, this.lat);
+       this._size.width = w;
+       this._size.height = h;
+       this.onResize(w, h);
     }
 
-    public function toString():String
+    public function getSize() : ComponentSize
     {
-
-       return "[LngLat] lng:" + fmtCoordinate(this.lng) + " lat:" + fmtCoordinate(this.lat);
-    }
- 
-    //convert coordinate to string (format %.6f)
-    static public function fmtCoordinate(value:Float) : String
-    {
-       var valuef:Float = Math.floor(value);
-       var f:Float = value - valuef;
-       var s:String = Std.string(valuef) + ".";
-       for (i in 0...6)
-       {
-           f *= 10.0;
-           s += Std.string(Math.floor(f));
-           f = f - Math.floor(f);
-       }
-       return s;
+       return this._size;
     }
 
-    //distance between two points in meters
-    static public function distance(a:LngLat, b:LngLat) : Float 
+    function onResize(w:Float, h:Float)
     {
-    	var dlat:Float = (b.lat - a.lat) * Math.PI / 180;
-    	var dlon:Float = (b.lng - a.lng) * Math.PI / 180;
-
-        dlat = Math.sin(dlat/2);
-        dlon = Math.sin(dlon/2);
-    	var a:Float = dlat*dlat + Math.cos(a.lat * Math.PI / 180 ) * Math.cos(b.lat * Math.PI / 180 ) * dlon*dlon;
-    	var c:Float = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    	c = 6371000.0 * c; //avg. radius of the earth in meters
-
-    	return c;
     }
-
 }

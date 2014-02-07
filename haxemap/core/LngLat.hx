@@ -1,6 +1,6 @@
 /*******************************************************************************
 Copyright (c) 2010, Zdenek Vasicek (vasicek AT fit.vutbr.cz)
-
+                    Marek Vavrusa  (marek AT vavrusa.com)
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,59 +28,58 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package com;
+package haxemap.core;
 
-import com.Component;
-import flash.text.TextField;
-
-class InfoBox extends Component 
+class LngLat
 {
-    var ofsy : Float;
-    var maxw : Float;
+    public var lat: Float;
+    public var lng: Float;
 
-    public function new()
+    public function new(lng:Float, lat:Float)
     {
-        super(); 
-        this.ofsy = 0;
-        this.maxw = 0;
+       this.lng = lng; 
+       this.lat = lat;
     }
 
-    public function addItem(text:String) : TextField
+    inline public function clone()
     {
-        var sz = getSize();
-
-        var fmt = new flash.text.TextFormat();
-        fmt.font="Arial";
-        fmt.size=12;
-        fmt.color = 0xFFFFFF;
-
-        var tf = new TextField();
-        tf.defaultTextFormat = fmt;
-        tf.x = 2;
-        tf.y = this.ofsy;
-        tf.autoSize = flash.text.TextFieldAutoSize.LEFT;
-        tf.multiline = false;
-        tf.text = text;
-        tf.border = false;
-        tf.background = false;
-  
-        addChild(tf);
-
-        if (tf.width > this.maxw) this.maxw = tf.width;
-
-        this.ofsy += tf.height + 1;          
-
-        update();
-
-        return tf;
+       return new LngLat(this.lng, this.lat);
     }
 
-    function update()
+    public function toString():String
     {
-        graphics.clear();
-        graphics.beginFill(0x000000, 0.5);
-        graphics.drawRect(0,0, this.maxw + 4, this.ofsy);
-        graphics.endFill();
+
+       return "[LngLat] lng:" + fmtCoordinate(this.lng) + " lat:" + fmtCoordinate(this.lat);
+    }
+ 
+    //convert coordinate to string (format %.6f)
+    static public function fmtCoordinate(value:Float) : String
+    {
+       var valuef:Float = Math.floor(value);
+       var f:Float = value - valuef;
+       var s:String = Std.string(valuef) + ".";
+       for (i in 0...6)
+       {
+           f *= 10.0;
+           s += Std.string(Math.floor(f));
+           f = f - Math.floor(f);
+       }
+       return s;
+    }
+
+    //distance between two points in meters
+    static public function distance(a:LngLat, b:LngLat) : Float 
+    {
+    	var dlat:Float = (b.lat - a.lat) * Math.PI / 180;
+    	var dlon:Float = (b.lng - a.lng) * Math.PI / 180;
+
+        dlat = Math.sin(dlat/2);
+        dlon = Math.sin(dlon/2);
+    	var a:Float = dlat*dlat + Math.cos(a.lat * Math.PI / 180 ) * Math.cos(b.lat * Math.PI / 180 ) * dlon*dlon;
+    	var c:Float = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    	c = 6371000.0 * c; //avg. radius of the earth in meters
+
+    	return c;
     }
 
 }

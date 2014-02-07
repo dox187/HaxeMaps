@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE. 
 *******************************************************************************/
 
-package com;
+package haxemap.ui;
 
 import flash.display.Shape;
 import flash.display.Graphics;
@@ -291,6 +291,7 @@ class CustomButton extends SimpleButton {
         this.shint = null;
         this.hint = "";
         this.canupdate = true;
+		
         updateShapes();
 
         useHandCursor  = true;
@@ -392,7 +393,8 @@ class CustomButton extends SimpleButton {
     }
 
     function clicked(event:MouseEvent) {
-        if (onClick) 
+        
+		if (onClick != null) 
            onClick(this);
     }
 
