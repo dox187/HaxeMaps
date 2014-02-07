@@ -106,7 +106,7 @@ class BaseMapService {
 
 }
 
-class OpenStreetMapService extends BaseMapService, implements MapService
+class OpenStreetMapService extends BaseMapService implements MapService
 {
     // Details:
     // ---------------------------------------------------------

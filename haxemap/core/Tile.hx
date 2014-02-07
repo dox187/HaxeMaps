@@ -43,8 +43,8 @@ class Tile extends Sprite
 
     var size:Int;
     var valid:Bool;
-    public var tx(default, settx):Int;
-    public var ty(default, setty):Int;
+    public var tx(default, set_tx):Int;
+    public var ty(default, set_ty):Int;
     public var tidx(default, null):Int;
     public var image(default, null):Bitmap;
 
@@ -150,7 +150,7 @@ class Tile extends Sprite
     }
 
 
-    function settx(val:Int) : Int 
+    function set_tx(val:Int) : Int 
     {
         if (val != tx) 
         {
@@ -161,7 +161,7 @@ class Tile extends Sprite
         return val;  
     }
 
-    function setty(val:Int) : Int 
+    function set_ty(val:Int) : Int 
     {
         if (val != ty) 
         {

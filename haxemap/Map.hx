@@ -3,9 +3,9 @@ import flash.display.Bitmap;
 import flash.events.MouseEvent;
 import flash.geom.Point;
 import haxemap.core.Layer;
-import nme.Assets;
-import nme.display.BitmapData;
-import nme.display.Sprite;
+import openfl.Assets;
+import flash.display.BitmapData;
+import flash.display.Sprite;
 import haxemap.core.Canvas;
 import haxemap.core.LngLat;
 import haxemap.core.TileLayer;
@@ -13,7 +13,7 @@ import haxemap.core.MapService;
 import haxemap.ui.Button;
 import haxemap.ui.ToolBar;
 import haxemap.ui.StatusBar;
-import nme.events.Event;
+import flash.events.Event;
 
 
 class Map extends Sprite
@@ -35,7 +35,7 @@ class Map extends Sprite
 		canvas.move(0, 0);
         canvas.setSize(w, h);
 		canvas.setCenter(new LngLat(144.6, -38));
-        canvas.addLayer(new TileLayer(new OpenStreetMapService(9), 8));
+        canvas.addLayer(new TileLayer(new BingMapService(9,true), 8));
         canvas.addLayer(markers);
 		
         addChild(canvas);

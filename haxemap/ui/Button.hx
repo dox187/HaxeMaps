@@ -273,10 +273,10 @@ class CustomButton extends SimpleButton {
     var curshape:Shape;
     var canupdate:Bool;
     public var hint:String;
-    public var checked(default, setChecked):Bool;
+    public var checked(default, set):Bool;
     public var onClick:Dynamic;
-    public var bgColor(default, setBgColor):Null<Int>;
-    public var bgColorHover(default, setBgColorHover):Null<Int>;
+    public var bgColor(default, set):Null<Int>;
+    public var bgColorHover(default, set):Null<Int>;
 
     public function new(size:Int = 25, bgColor:Null<Int> = null, bgColorHover:Null<Int> = null, fgColor:Int = 0xEEEEEE)//0x007BC8)
     {
@@ -348,7 +348,7 @@ class CustomButton extends SimpleButton {
         addEventListener(MouseEvent.MOUSE_OVER, mouseOver);
     }
 
-    function setBgColor(val:Null<Int>) : Null<Int>
+    function set_bgColor(val:Null<Int>) : Null<Int>
     {
         if (val != bgColor) {
            bgColor = val;
@@ -357,7 +357,7 @@ class CustomButton extends SimpleButton {
         return val;
     }
 
-    function setBgColorHover(val:Null<Int>) : Null<Int>
+    function set_bgColorHover(val:Null<Int>) : Null<Int>
     {
         if (val != bgColorHover) {
            bgColorHover = val;
@@ -366,7 +366,7 @@ class CustomButton extends SimpleButton {
         return val;
     }
 
-    function setChecked(val:Bool) : Bool 
+    function set_checked(val:Bool) : Bool 
     {
         if (val != checked) {
            checked = val;
