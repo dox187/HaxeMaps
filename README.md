@@ -10,3 +10,12 @@ Haxemaps is an library written in Haxe language designed to accelerate the imple
 The documentation (in Czech) as well as the online demo can be found [here]. 
 
 [here]: http://www.fit.vutbr.cz/~vasicek/docs/map_index.htm
+
+
+## Setup/Installing:
+
+dependency: http://openfl.org/
+
+```
+haxelib git haxemap https://github.com/dox187/HaxeMaps.git
+```
