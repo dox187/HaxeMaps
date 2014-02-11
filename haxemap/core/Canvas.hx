@@ -29,7 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
 
 package haxemap.core;
-
+import Map;
 import haxemap.ui.Component;
 
 import haxemap.core.MapService;
@@ -42,6 +42,12 @@ import flash.utils.Timer;
 import flash.events.TimerEvent;
 import flash.display.Shape;
 import flash.display.BitmapData;
+//#if mobile
+	import flash.ui.Multitouch;
+	import flash.ui.MultitouchInputMode;
+	import flash.events.TouchEvent;
+	import flash.system.Capabilities;
+//#end
 
 typedef ALayer = {
    var layer : Layer;
@@ -80,6 +86,15 @@ class Canvas extends Component
     public var mousethreshold:Int;  //the minimal number of pixels that have to be passed in order to start moving
     public var transparent(default, set):Bool;
 
+	//#if mobile
+	//multitouch 
+	var multiTouchSupported : Bool;
+	var touches : Map<Int,TouchEvent>;
+	var latestPinchZoomDistance:Float;
+	var pinchZoomLimit:Float = 0;
+	var zoomCounter:Int = 0;
+	//#end
+	
     public function new(interactive:Bool = true)
     {
         super();
@@ -128,16 +143,30 @@ class Canvas extends Component
 		#else */
 		if (interactive) 
         {
-           addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
-           addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
-           addEventListener(MouseEvent.DOUBLE_CLICK, onMouseDoubleClick);
+			/**/
+			#if mobile
+				touches = new Map<Int,TouchEvent>();
+				
+				pinchZoomLimit = 2.2; //cm
+				pinchZoomLimit = Math.round(Capabilities.screenDPI / 2.54 * pinchZoomLimit); //convert2px
+				addEventListener(TouchEvent.TOUCH_BEGIN, onTouchBegin);
+				addEventListener(TouchEvent.TOUCH_MOVE, onTouchMove);
+				addEventListener(TouchEvent.TOUCH_END, onTouchEnd);
+				addEventListener(MouseEvent.DOUBLE_CLICK, onMouseDoubleClick);
+			#else 
+			/**/
+				addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+				addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+				addEventListener(MouseEvent.DOUBLE_CLICK, onMouseDoubleClick);
+			#end
         }
 		//#end
     }
     /*============================================================================================== 
       LAYER MANAGEMENT
      *==============================================================================================*/
-    public function initialize()
+
+	public function initialize()
     {
         if (initialized)
            return;
@@ -518,8 +547,63 @@ class Canvas extends Component
             l.layer.setBBox(new Rectangle(0,0,w,h));
     }
 
+	function onTouchBegin(e:TouchEvent) 
+	{
+		
+		touches.set(e.touchPointID, e);
+		zoomCounter = 0;
+		if (Lambda.count(touches) == 1) {
+			onMouseDown(cast(e,MouseEvent));
+		}
+	}
+	
+	function onTouchMove(e:TouchEvent) 
+	{
+		
+		if (zoomCounter < 1) {
+			touches.set(e.touchPointID, e);
+			var distance:Float = 0;
+			var refPoint:Point = null;
+			var i:Int = 0;
+			for (iteratE in touches.iterator()) {
+				if (refPoint == null)
+					refPoint = new Point(iteratE.stageX, iteratE.stageY);
+				else if(i == 1){
+					distance = Point.distance(new Point(iteratE.stageX, iteratE.stageY), refPoint);
+					if (latestPinchZoomDistance == 0)
+						latestPinchZoomDistance = distance;
+					
+					var disdiff = latestPinchZoomDistance - distance;
+					if (Math.abs(disdiff) > pinchZoomLimit) {
+						if (disdiff < 0){
+							zoomIn();
+							trace('zoomIn');
+							zoomCounter++;
+						}
+						else {
+							zoomOut();
+							trace('zoomOut');
+							zoomCounter++;
+						}
+						latestPinchZoomDistance = 0;
+					}
+				}
+				i++;
+			}
+			if (Lambda.count(touches) == 1) 
+				onMouseMove(cast(e, MouseEvent));
+			
+		}
+	}
+	
+	function onTouchEnd(e:TouchEvent) {
+		
+		touches.remove(e.touchPointID);
+	}
+	 
     function onMouseDown(e:MouseEvent)
     {
+		
         var tl:Point = localToGlobal(new Point(0,0));
         var br:Point = localToGlobal(new Point(width, height));
 
@@ -534,6 +618,7 @@ class Canvas extends Component
 
     function onMouseUp(e:MouseEvent)
     {
+		
         addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
         addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
         flash.Lib.current.stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
@@ -562,6 +647,7 @@ class Canvas extends Component
 
     function onMouseDoubleClick(e:MouseEvent)
     {
+		
         if (!doubleClickEnabled) return;
 
         if (thtimer != null)
@@ -572,24 +658,26 @@ class Canvas extends Component
         }
 
         if (e.ctrlKey)
-           zoomOut()
+           zoomOut();
         else
            zoomIn();
     }
 
     function onMouseMove(e:MouseEvent)
     {
-       for (l in layers)
-           if (l.enabled)
-           {
-              var pt = l.layer.globalToLocal(new Point(e.stageX, e.stageY));
-              dispatchEvent(new MapEvent(MapEvent.MAP_MOUSEMOVE, l.layer.getLngLat(pt)));
-              return;
-           }   
+		
+		for (l in layers)
+			if (l.enabled)
+			{
+				var pt = l.layer.globalToLocal(new Point(e.stageX, e.stageY));
+				dispatchEvent(new MapEvent(MapEvent.MAP_MOUSEMOVE, l.layer.getLngLat(pt)));
+				return;
+			}   
     }
 
     function onStageMouseMove(e:MouseEvent)
     {
+		
        var pt:Point = new Point(e.stageX, e.stageY);
 
        if (!thpassed) 

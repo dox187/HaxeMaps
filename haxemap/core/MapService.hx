@@ -179,7 +179,7 @@ class OpenStreetMapService extends BaseMapService implements MapService
 
 }
 
-class BingMapService extends OpenStreetMapService
+class BingMapServiceBeta extends OpenStreetMapService
 {
 
     // Details:
@@ -192,7 +192,7 @@ class BingMapService extends OpenStreetMapService
     {
        super();
        this.hybrid = hybrid;
-       setInfo("Bink Maps", "bnk", 1, 18, default_zoom, 256);
+       setInfo("Bing Maps", "bingm", 1, 18, default_zoom, 256);
 
     }
 
@@ -224,29 +224,35 @@ class BingMapService extends OpenStreetMapService
 
 }
 
-class GoogleMapService extends OpenStreetMapService
+class GoogleMapServiceBeta extends OpenStreetMapService 
 {
-	
-    // Details:
-    // ---------------------------------------------------------
-    //   http://msdn.microsoft.com/en-us/library/bb545006.aspx
 
-    var hybrid:Bool;
+	// Details:
+	// ---------------------------------------------------------
+	//   https://developers.google.com/maps/documentation/staticmaps/?hl=hu&csw=1#Limits
 
-    override public function new(default_zoom:Int = 13, hybrid:Bool = false)
-    {
-       super();
-       this.hybrid = hybrid;
-       setInfo("Bink Maps", "bnk", 1, 18, default_zoom, 256);
-		
-    }
+	var hybrid:Bool;
 
+	override public function new(default_zoom:Int = 13, hybrid:Bool = false)
+	{
+		super();
+		this.hybrid = hybrid;
+		setInfo("Google Maps", "gmaps", 1, 18, default_zoom, 512);
+
+	}
+	public function tile2lonlatCentralPos(t:TileID):LonLat //t.x+=+.5; t.y+=.5;
+	{
+		var z = Math.pow(2,t.z);
+		var n  = Math.PI-2*Math.PI*(t.y+.5)/z;  
+		return new LonLat((t.x+.5)/z*360-180, 180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+	}
     override public function tile2url(t:TileID) : String
     {
 		if (!isValid(t)) return "";
-		
+		var lonlat:LonLat = tile2lonlatCentralPos(t);
 		if (!proxy)
-			return "http://khm1.google.com/kh/v=109&src=app&x=" + t.x + "&y=" + t.y + "&z=" + t.z + "&s=Galileo.jpg";
+			return "http://maps.googleapis.com/maps/api/staticmap?center="+lonlat.y+","+lonlat.x+"&zoom="+t.z+"&size=512x512&format=jpg&hybrid=roadmap&sensor=false"; //fail
+			//404 . return "http://khm1.google.com/kh/v=109&src=app&x=" + t.x + "&y=" + t.y + "&z=" + t.z + "&s=Galileo.jpg";
 		
 		return this.proxy_url + (t.z) + "_" + (t.x) + "_" + (t.y);
     }

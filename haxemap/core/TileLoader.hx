@@ -39,9 +39,7 @@ import flash.display.Loader;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.net.URLRequest;
-#if flash
 import flash.system.LoaderContext;
-#end
 import flash.utils.Timer;
 import flash.events.TimerEvent;
 
@@ -104,33 +102,32 @@ class ImageLoader extends Loader
    public function loadImage(tid:TileIDT, url:String) {
       var urlRequest:URLRequest = new URLRequest(url);
       this.tid = tid;
-      
-	  try {
+      try {
 
         #if TILE_EVT_DBG
         try {
-            ExternalInterface.call("debugMessage", "loadImage "+id+" ("+tid.x+","+tid.y+","+tid.z+") prio:"+tid.priority);
+            trace("debugMessage", "loadImage "+id+" ("+tid.x+","+tid.y+","+tid.z+") prio:"+tid.priority);
         } catch (unknown : Dynamic)  { };
         #end
-
-		#if flash
+		
 		this.load(urlRequest,  new LoaderContext(true));
-        #else 
+        /*#else 
 		this.load(urlRequest);
 		#end
-		
+		*/
 		this.used = true;
         this.ttl = TIMEOUT;
 
-      } 
-      catch (unknown : Dynamic)  
-      {
-        this.used = false;
-      }
-	  
-	 /* this.load(urlRequest);
-	  this.used = true;
-	  this.ttl = TIMEOUT;*/
+		} 
+		catch (unknown : Dynamic)  
+		{
+			trace('loadImage error',unknown);
+			this.used = false;
+		}
+
+		/* this.load(urlRequest);
+		this.used = true;
+		this.ttl = TIMEOUT;*/
    }
  
    override public function toString() 
@@ -216,8 +213,7 @@ class TileLoader extends EventDispatcher
 				
               } 
               catch (unknown : Dynamic)  
-              { 
-				trace(unknown);  
+              {   
 			  };
            }
  
@@ -262,7 +258,7 @@ class TileLoader extends EventDispatcher
           } 
           else
 		  {
-			 trace("kill " + tid.tidx);
+			 //trace("kill " + tid.tidx);
 			 
 			 #if flash
              loaders[tid.ttl].close();
@@ -434,8 +430,7 @@ class TileLoader extends EventDispatcher
 
     function loaderComplete(e:Event)
     {
-
-        if ((e.target == null) || (e.target.loader == null))
+		if ((e.target == null) || (e.target.loader == null))
            return;
  
         var loader:ImageLoader = e.target.loader;
@@ -456,12 +451,11 @@ class TileLoader extends EventDispatcher
                #end
 
                var bitmapc:Bitmap = new Bitmap(cast(loader.content, Bitmap).bitmapData.clone());
-               
-			   dispatchEvent(new TileLoadedEvent(x, y, z, t, p, bitmapc));
+               dispatchEvent(new TileLoadedEvent(x, y, z, t, p, bitmapc));
            } 
            catch (unknown : Dynamic)  
            { 
-
+				trace(unknown);
                //chyba, znovu do fronty, pokud jiz neni vycerpan poc. pokusu
                if (loader.tid.ttl > 0)
                {
@@ -497,6 +491,7 @@ class TileLoader extends EventDispatcher
 
     function loaderFailed(l:ImageLoader)
     {
+		trace('loaderFailed',l);
         l.used = false;
         l.ignore = false;
 
@@ -523,10 +518,10 @@ class TileLoader extends EventDispatcher
 
     function loaderError(e:IOErrorEvent)
     {
-
-       for (l in loaders)
-           if (l.contentLoaderInfo == e.target)
-              loaderFailed(l);
+		trace('loaderError',e);
+		for (l in loaders)
+			if (l.contentLoaderInfo == e.target)
+				loaderFailed(l);
     }
 
     function getTile(x:Int, y:Int, z:Int) : TempTile

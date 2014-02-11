@@ -15,8 +15,7 @@ import haxemap.ui.ToolBar;
 import haxemap.ui.StatusBar;
 import flash.events.Event;
 
-
-class Map extends Sprite
+class OnlineMap extends Sprite
 {
 	public var canvas:Canvas;
     public var toolbar:ToolBar;
@@ -35,7 +34,7 @@ class Map extends Sprite
 		canvas.move(0, 0);
         canvas.setSize(w, h);
 		canvas.setCenter(new LngLat(144.6, -38));
-        canvas.addLayer(new TileLayer(new BingMapService(9,true), 8));
+        canvas.addLayer(new TileLayer(new OpenStreetMapService(9),6,true));
         canvas.addLayer(markers);
 		
         addChild(canvas);
@@ -51,7 +50,6 @@ class MarkerLayer extends Layer
 	public function new()
 	{
 		super();
-		
 		markers = [];
 	}
 	
