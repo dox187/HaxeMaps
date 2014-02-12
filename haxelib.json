@@ -1,6 +1,6 @@
 {
   "name": "haxemap",
-  "license": "other",
+  "license": "Public",
   "tags": ["openfl","cpp","flash","osm","map","android","ios","gmaps","bing map"],
   "description": "OPENFL haxe extension - osm/universal online map api",
   "contributors": ["dox187"],
