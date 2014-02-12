@@ -19,3 +19,28 @@ dependency: http://openfl.org/
 ```
 haxelib git haxemap https://github.com/dox187/HaxeMaps.git
 ```
+
+## How to use:
+
+Include Haxemap library: 
+**project.xml**
+```xml
+<haxelib name="haxemap" />
+```
+
+**Main.hx**
+```haxe
+import flash.display.Sprite;
+import haxemap.OnlineMap;
+
+class Main extends Sprite {
+	public function new () {
+		super ();
+		var map = new OnlineMap();
+			map.init(stage.stageWidth,stage.stageHeight);
+		addChild(map);
+		
+	}
+}
+```
+
